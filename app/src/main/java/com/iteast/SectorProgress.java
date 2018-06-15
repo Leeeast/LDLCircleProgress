@@ -109,6 +109,7 @@ public class SectorProgress extends View {
      */
     public void setCurrentPogress(int progress) {
         mCurrentAngle += progress;
+        mCurrentAngle = mCurrentAngle > 0 ? 0 : mCurrentAngle;
         invalidate();
     }
 }
