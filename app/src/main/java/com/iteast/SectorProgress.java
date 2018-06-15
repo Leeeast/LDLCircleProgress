@@ -1,6 +1,7 @@
 package com.iteast;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
@@ -11,14 +12,22 @@ import android.view.View;
 
 public class SectorProgress extends View {
 
-    private int W;
-    private int H;
-    private Paint mPaint;
-    private int R;
+    private static final int SP_BACKGROUND_COLOR = 0x66000000;
+    private static final int SP_CORNER_RADIUS = 30;
+    private static final int SP_BORDER_DISTANCE = 30;
+    private static final int START_ANGLE = 270;
 
-    public SectorProgress(Context context) {
-        this(context, null);
-    }
+    private Paint mPaint;
+    private int mCenterX;
+    private int mCenterY;
+    private int mSpBackgroundColor;
+    private boolean mSpCenter;
+    private int mSpCornerRadius;
+    private int mSpBorderDistance;
+    private int mSpCircleBackgroundColor;
+    private int mSpOffsetCenterY;
+    private int mSpCircleRadius;
+    private int mCurrentAngle = -360;
 
     public SectorProgress(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -31,14 +40,30 @@ public class SectorProgress extends View {
 
     public void init(Context context, AttributeSet attrs) {
         mPaint = new Paint();
+        mPaint.setAntiAlias(true);
+
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SectorProgress);
+        mSpBackgroundColor = ta.getColor(R.styleable.SectorProgress_spBackgroundColor, SP_BACKGROUND_COLOR);
+        mSpCenter = ta.getBoolean(R.styleable.SectorProgress_spCenter, true);
+        mSpCornerRadius = ta.getDimensionPixelOffset(R.styleable.SectorProgress_spCornerRadius, SP_CORNER_RADIUS);
+        mSpBorderDistance = ta.getDimensionPixelOffset(R.styleable.SectorProgress_spBorderDistance, SP_BORDER_DISTANCE);
+        mSpCircleBackgroundColor = ta.getColor(R.styleable.SectorProgress_spCircleBackgroundColor, SP_BACKGROUND_COLOR);
+        mSpOffsetCenterY = ta.getDimensionPixelOffset(R.styleable.SectorProgress_spOffsetCenterY, 0);
+        mSpCircleRadius = ta.getDimensionPixelOffset(R.styleable.SectorProgress_spCircleRadius, 100);
+        ta.recycle();
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int mMeasuredWidth = getMeasuredWidth();
+        int mMeasuredHeight = getMeasuredHeight();
+        mCenterX = mMeasuredWidth / 2;
+        mCenterY = mSpCenter ? mMeasuredHeight / 2 : mMeasuredHeight / 2 - mSpOffsetCenterY;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        R = getWidth() / 2;
-        W = getWidth();
-        H = getHeight();
-        //背景色
         int sc = canvas.saveLayer(0, 0, canvas.getWidth(), canvas.getHeight(), null, Canvas.ALL_SAVE_FLAG);
         //先绘制的是dst，后绘制的是src
         drawDst(canvas, mPaint);
@@ -53,31 +78,37 @@ public class SectorProgress extends View {
     }
 
     private void drawCircleProgress(Canvas canvas, Paint p) {
-        //画黄色圆形
-        p.setColor(0x50000000);
-        RectF rectF = new RectF(R - R / 2 + 15, R - R / 2 + 15, R + R / 2 - 15, R + R / 2 - 15);
-        canvas.drawArc(rectF, 270, -350, true, p);
+        //画中间扇形
+        p.setColor(mSpBackgroundColor);
+        RectF rectF = new RectF(
+                mCenterX - mSpCircleRadius + mSpBorderDistance,
+                mCenterY - mSpCircleRadius + mSpBorderDistance,
+                mCenterX + mSpCircleRadius - mSpBorderDistance,
+                mCenterY + mSpCircleRadius - mSpBorderDistance);
+        canvas.drawArc(rectF, START_ANGLE, mCurrentAngle, true, p);
     }
 
 
     private void drawDst(Canvas canvas, Paint p) {
-        //画黄色圆形
-        p.setColor(0x50000000);
+        //画圆角背景
+        p.setColor(mSpCircleBackgroundColor);
         RectF rectF = new RectF(0, 0, getWidth(), getHeight());
-        canvas.drawRoundRect(rectF, 10, 10, p);
+        canvas.drawRoundRect(rectF, mSpCornerRadius, mSpCornerRadius, p);
     }
 
     private void drawSrc(Canvas canvas, Paint p) {
-        //画蓝色矩形
+        //画中心镂空
         p.setColor(0xFF66AAFF);
-        canvas.drawCircle(R, R, R / 2, p);
+        canvas.drawCircle(mCenterX, mCenterY, mSpCircleRadius, p);
     }
 
     /**
-     * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+     * 设置当前进度
+     *
+     * @param progress
      */
-    public int dip2px(Context context, float dpValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
+    public void setCurrentPogress(int progress) {
+        mCurrentAngle += progress;
+        invalidate();
     }
 }

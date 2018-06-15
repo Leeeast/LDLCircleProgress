@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SectorProgress">
+        <!--中间圆心是否居中-->
+        <attr name="spCenter" format="boolean" />
+        <!--中间圆心在Y轴上,距离中心的偏移量-->
+        <attr name="spOffsetCenterY" format="dimension" />
+        <!--控件背景-->
+        <attr name="spBackgroundColor" format="color" />
+        <!--控件圆角-->
+        <attr name="spCornerRadius" format="dimension" />
+        <!--中心圆边距-->
+        <attr name="spBorderDistance" format="dimension" />
+        <!--中心圆背景-->
+        <attr name="spCircleBackgroundColor" format="color" />
+        <!--中心园半径-->
+        <attr name="spCircleRadius" format="dimension" />
+    </declare-styleable>
+</resources>
