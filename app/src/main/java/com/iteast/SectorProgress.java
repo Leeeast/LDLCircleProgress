@@ -1,5 +1,7 @@
 package com.iteast;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -7,8 +9,11 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.view.View;
+
 
 public class SectorProgress extends View {
 
@@ -29,6 +34,20 @@ public class SectorProgress extends View {
     private int mSpCircleRadius;
     private int mCurrentAngle = -360;
 
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (mCurrentAngle == 0) {
+                startDisappearAnimation();
+            } else {
+                mCurrentAngle += 10;
+                invalidate();
+                mHandler.sendEmptyMessageDelayed(0, 100);
+            }
+        }
+    };
+
     public SectorProgress(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
@@ -36,6 +55,8 @@ public class SectorProgress extends View {
     public SectorProgress(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, attrs);
+        //测试代码
+        mHandler.sendEmptyMessageDelayed(0, 1000);
     }
 
     public void init(Context context, AttributeSet attrs) {
@@ -100,6 +121,40 @@ public class SectorProgress extends View {
         //画中心镂空
         p.setColor(0xFF66AAFF);
         canvas.drawCircle(mCenterX, mCenterY, mSpCircleRadius, p);
+    }
+
+    public void startDisappearAnimation() {
+        ValueAnimator valueAnimator = ValueAnimator.ofFloat(mSpCircleRadius, getMeasuredWidth() > getMeasuredHeight() ? getMeasuredWidth() : getMeasuredHeight());
+        valueAnimator.setDuration(300);
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mSpCircleRadius = (int) ((float) animation.getAnimatedValue());
+                invalidate();
+            }
+        });
+        valueAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        valueAnimator.start();
     }
 
     /**
